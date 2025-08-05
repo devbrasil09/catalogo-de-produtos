@@ -34,6 +34,17 @@
         h1 {
             color: #333;
         }
+
+        .btn-dashboard {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            margin-top: 15px;
+            display: inline-block;
+        }
         
         .seccao {
             border: 1px solid #e9ecef;
@@ -164,6 +175,7 @@
         <header>
             <img id="logo-negocio" src="https://via.placeholder.com/150" alt="Logo do Negócio">
             <h1>Painel de Administração</h1>
+            <a href="dashboard.html" class="btn-dashboard">Ver Dashboard</a>
         </header>
 
         <div class="seccao">
@@ -214,12 +226,14 @@
     </div>
 
     <script>
+        // Funções de verificação de login
         function verificarLogin() {
             if (localStorage.getItem('loggedIn') !== 'true') {
                 window.location.href = 'login.html';
             }
         }
         
+        // Funções para gerir o localStorage
         function getProdutos() {
             const produtos = localStorage.getItem('catalogo');
             return produtos ? JSON.parse(produtos) : [];
@@ -238,6 +252,7 @@
             localStorage.setItem('categorias', JSON.stringify(categorias));
         }
 
+        // Função para renderizar a lista de produtos no painel
         function renderizarProdutosAdmin() {
             const listaAdm = document.getElementById('lista-produtos-adm');
             listaAdm.innerHTML = '';
