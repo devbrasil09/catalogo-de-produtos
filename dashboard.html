@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Vendas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        .seccao {
+            margin-bottom: 20px;
+        }
+        .seccao h2 {
+            color: #555;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        .lista-relatorio ul, #vendas-por-categoria ul {
+            list-style: none;
+            padding: 0;
+        }
+        .lista-relatorio li, #vendas-por-categoria li {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+        .total-geral {
+            text-align: right;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+        }
+        .total-geral h2 {
+            font-size: 1.5em;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Dashboard de Vendas</h1>
+            <p>Análise de vendas por categoria e diária.</p>
+        </header>
+
+        <div class="seccao">
+            <h2>Relatório de Vendas Diário</h2>
+            <div id="vendas-por-dia" class="lista-relatorio">
+                <ul>
+                </ul>
+            </div>
+        </div>
+
+        <div class="seccao">
+            <h2>Vendas por Categoria</h2>
+            <div id="vendas-por-categoria">
+                <ul>
+                </ul>
+            </div>
+        </div>
+
+        <div class="total-geral">
+            <h2 id="total-geral">Total Geral: R$0,00</h2>
+        </div>
+    </div>
+
+    <script>
+        function getPedidos() {
+            const pedidos = localStorage.getItem('pedidos');
+            return pedidos ? JSON.parse(pedidos) : [];
+        }
+
+        function getProdutos() {
+            const produtos = localStorage.getItem('catalogo');
+            return produtos ? JSON.parse(produtos) : [];
+        }
+
+        function carregarDados() {
+            const pedidos = getPedidos();
+            const produtos = getProdutos();
+            
+            if (pedidos.length === 0) {
+                document.getElementById('vendas-por-dia').innerHTML = '<p style="text-align: center;">Nenhum pedido encontrado.</p>';
+                document.getElementById('vendas-por-categoria').innerHTML = '<p style="text-align: center;">Nenhum pedido encontrado.</p>';
+                document.getElementById('total-geral').textContent = 'Total Geral: R$0,00';
+                return;
+            }
+
+            const mapaProdutos = {};
+            produtos.forEach(p => mapaProdutos[p.id] = p);
+
+            const vendasPorCategoria = {};
+            const vendasPorDia = {};
+            let totalGeral = 0;
+
+            pedidos.forEach(pedido => {
+                const dataPedido = new Date(pedido.data).toLocaleDateString();
+                let valorPedido = 0;
+
+                pedido.itens.forEach(item => {
+                    const produto = mapaProdutos[item.id];
+                    if (produto) {
+                        const valorVenda = item.quantidade * produto.preco;
+                        const categoria = produto.categoria;
+                        
+                        if (!vendasPorCategoria[categoria]) {
+                            vendasPorCategoria[categoria] = 0;
+                        }
+                        vendasPorCategoria[categoria] += valorVenda;
+                        
+                        valorPedido += valorVenda;
+                    }
+                });
+
+                if (!vendasPorDia[dataPedido]) {
+                    vendasPorDia[dataPedido] = 0;
+                }
+                vendasPorDia[dataPedido] += valorPedido;
+                
+                totalGeral += valorPedido;
+            });
+
+            renderizarVendasDiarias(vendasPorDia);
+            renderizarVendasPorCategoria(vendasPorCategoria);
+            document.getElementById('total-geral').textContent = `Total Geral: R$${totalGeral.toFixed(2)}`;
+        }
+
+        function renderizarVendasDiarias(vendasPorDia) {
+            const listaVendas = document.querySelector('#vendas-por-dia ul');
+            listaVendas.innerHTML = '';
+            
+            for (const dia in vendasPorDia) {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>Vendas em ${dia}</span>
+                    <span>R$${vendasPorDia[dia].toFixed(2)}</span>
+                `;
+                listaVendas.appendChild(li);
+            }
+        }
+
+        function renderizarVendasPorCategoria(vendasPorCategoria) {
+            const listaVendas = document.querySelector('#vendas-por-categoria ul');
+            listaVendas.innerHTML = '';
+            
+            for (const categoria in vendasPorCategoria) {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${categoria}</span>
+                    <span>R$${vendasPorCategoria[categoria].toFixed(2)}</span>
+                `;
+                listaVendas.appendChild(li);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarDados);
+    </script>
+</body>
+</html>

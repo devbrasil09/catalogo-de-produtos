@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header img {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #333;
+        }
+        
+        .seccao {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .seccao h2 {
+            margin-top: 0;
+            color: #555;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .form-grupo {
+            margin-bottom: 15px;
+        }
+
+        .form-grupo label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-grupo input, .form-grupo textarea, .form-grupo select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button.principal {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+        }
+        
+        button.principal:hover {
+            background-color: #218838;
+        }
+        
+        .tabela-produtos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .tabela-produtos th, .tabela-produtos td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .tabela-produtos th {
+            background-color: #e9ecef;
+        }
+
+        .tabela-produtos .acoes {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-status {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #fff;
+            white-space: nowrap;
+        }
+        
+        .btn-status.ativo {
+            background-color: #28a745;
+        }
+        
+        .btn-status.inativo {
+            background-color: #dc3545;
+        }
+
+        .btn-acao {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-acao.editar {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-acao.editar:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-acao.remover {
+            background-color: #dc3545;
+        }
+        
+        .btn-acao.remover:hover {
+            background-color: #c82333;
+        }
+
+        #preview-imagem {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <img id="logo-negocio" src="https://via.placeholder.com/150" alt="Logo do Negócio">
+            <h1>Painel de Administração</h1>
+        </header>
+
+        <div class="seccao">
+            <h2>Cadastrar/Editar Produto</h2>
+            <form id="form-cadastro-produto">
+                <input type="hidden" id="produto-id" name="produto-id">
+                <div class="form-grupo">
+                    <label for="produto-nome">Nome do Produto</label>
+                    <input type="text" id="produto-nome" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="produto-descricao">Descrição</label>
+                    <textarea id="produto-descricao" rows="3" required></textarea>
+                </div>
+                <div class="form-grupo">
+                    <label for="produto-preco">Preço (R$)</label>
+                    <input type="number" id="produto-preco" step="0.01" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="produto-categoria">Categoria</label>
+                    <input type="text" id="produto-categoria" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="produto-imagem">Imagem do Produto</label>
+                    <input type="file" id="produto-imagem" accept="image/*">
+                    <img id="preview-imagem" src="" alt="Pré-visualização da Imagem">
+                </div>
+                <button type="submit" class="principal">Salvar Produto</button>
+            </form>
+        </div>
+
+        <div class="seccao">
+            <h2>Produtos Cadastrados</h2>
+            <table class="tabela-produtos">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-produtos-adm">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function verificarLogin() {
+            if (localStorage.getItem('loggedIn') !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        function getProdutos() {
+            const produtos = localStorage.getItem('catalogo');
+            return produtos ? JSON.parse(produtos) : [];
+        }
+
+        function setProdutos(produtos) {
+            localStorage.setItem('catalogo', JSON.stringify(produtos));
+        }
+
+        function getCategorias() {
+            const categorias = localStorage.getItem('categorias');
+            return categorias ? JSON.parse(categorias) : [];
+        }
+
+        function setCategorias(categorias) {
+            localStorage.setItem('categorias', JSON.stringify(categorias));
+        }
+
+        function renderizarProdutosAdmin() {
+            const listaAdm = document.getElementById('lista-produtos-adm');
+            listaAdm.innerHTML = '';
+            
+            const produtos = getProdutos();
+            produtos.forEach((produto, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${produto.nome}</td>
+                    <td>R$${produto.preco.toFixed(2)}</td>
+                    <td>${produto.categoria}</td>
+                    <td>
+                        <button class="btn-status ${produto.ativo ? 'ativo' : 'inativo'}" onclick="toggleStatus(${produto.id})">
+                            ${produto.ativo ? 'Ativo' : 'Inativo'}
+                        </button>
+                    </td>
+                    <td class="acoes">
+                        <button class="btn-acao editar" onclick="carregarProdutoParaEdicao(${produto.id})">Editar</button>
+                        <button class="btn-acao remover" onclick="removerProduto(${produto.id})">Remover</button>
+                    </td>
+                `;
+                listaAdm.appendChild(tr);
+            });
+        }
+        
+        function toggleStatus(produtoId) {
+            const produtos = getProdutos();
+            const produto = produtos.find(p => p.id == produtoId);
+            if (produto) {
+                produto.ativo = !produto.ativo;
+                setProdutos(produtos);
+                renderizarProdutosAdmin();
+            }
+        }
+
+        function carregarProdutoParaEdicao(produtoId) {
+            const produtos = getProdutos();
+            const produtoParaEditar = produtos.find(p => p.id == produtoId);
+            if (produtoParaEditar) {
+                document.getElementById('produto-id').value = produtoParaEditar.id;
+                document.getElementById('produto-nome').value = produtoParaEditar.nome;
+                document.getElementById('produto-descricao').value = produtoParaEditar.descricao;
+                document.getElementById('produto-preco').value = produtoParaEditar.preco;
+                document.getElementById('produto-categoria').value = produtoParaEditar.categoria;
+                document.querySelector('button.principal').textContent = 'Salvar Edição';
+                
+                const previewImagem = document.getElementById('preview-imagem');
+                if (produtoParaEditar.imagem) {
+                    previewImagem.src = produtoParaEditar.imagem;
+                    previewImagem.style.display = 'block';
+                } else {
+                    previewImagem.style.display = 'none';
+                }
+            }
+        }
+        
+        function removerProduto(produtoId) {
+            if (confirm('Tem certeza que deseja remover este produto?')) {
+                const produtos = getProdutos();
+                const produtosAtualizados = produtos.filter(p => p.id != produtoId);
+                setProdutos(produtosAtualizados);
+                renderizarProdutosAdmin();
+            }
+        }
+
+        document.getElementById('form-cadastro-produto').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('produto-id').value;
+            const nome = document.getElementById('produto-nome').value;
+            const descricao = document.getElementById('produto-descricao').value;
+            const preco = parseFloat(document.getElementById('produto-preco').value);
+            const categoria = document.getElementById('produto-categoria').value;
+            const imagemFile = document.getElementById('produto-imagem').files[0];
+            
+            let produtos = getProdutos();
+            let categorias = getCategorias();
+
+            if (categoria && !categorias.includes(categoria)) {
+                categorias.push(categoria);
+                setCategorias(categorias);
+            }
+
+            if (imagemFile) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const imagemBase64 = reader.result;
+                    salvarProduto(id, nome, descricao, preco, categoria, imagemBase64);
+                };
+                reader.readAsDataURL(imagemFile);
+            } else {
+                let imagemBase64 = null;
+                if (id) {
+                    const produtoExistente = produtos.find(p => p.id == id);
+                    if (produtoExistente) {
+                        imagemBase64 = produtoExistente.imagem;
+                    }
+                }
+                salvarProduto(id, nome, descricao, preco, categoria, imagemBase64);
+            }
+        });
+
+        function salvarProduto(id, nome, descricao, preco, categoria, imagemBase64) {
+            let produtos = getProdutos();
+            
+            if (id) {
+                const produtoIndex = produtos.findIndex(p => p.id == id);
+                if (produtoIndex !== -1) {
+                    produtos[produtoIndex] = { ...produtos[produtoIndex], nome, descricao, preco, categoria, imagem: imagemBase64 };
+                }
+            } else {
+                const novoProduto = {
+                    id: Date.now(),
+                    nome,
+                    descricao,
+                    preco,
+                    categoria,
+                    imagem: imagemBase64,
+                    ativo: true
+                };
+                produtos.push(novoProduto);
+            }
+            
+            setProdutos(produtos);
+            document.getElementById('form-cadastro-produto').reset();
+            document.getElementById('produto-id').value = '';
+            document.querySelector('button.principal').textContent = 'Salvar Produto';
+            document.getElementById('preview-imagem').style.display = 'none';
+            renderizarProdutosAdmin();
+        }
+
+        document.getElementById('produto-imagem').addEventListener('change', function(event) {
+            const previewImagem = document.getElementById('preview-imagem');
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImagem.src = e.target.result;
+                    previewImagem.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImagem.style.display = 'none';
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarLogin();
+            renderizarProdutosAdmin();
+        });
+    </script>
+
+</body>
+</html>

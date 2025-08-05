@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Produtos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        #filtros {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #filtros button {
+            background-color: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+            margin: 0 5px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            font-weight: 500;
+        }
+
+        #filtros button:hover, #filtros button.ativo {
+            background-color: #ff6f61;
+            color: #fff;
+            border-color: #ff6f61;
+        }
+
+        #lista-produtos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .produto {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .produto:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .produto img {
+            max-width: 100%;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .produto h2 {
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+
+        .produto p {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .produto .preco {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 1.2em;
+        }
+
+        .produto-card button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .produto-card button:hover {
+            background-color: #0056b3;
+        }
+        
+        #carrinho-seccao {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #carrinho, .checkout-seccao {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .item-carrinho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+            padding: 10px 0;
+        }
+        
+        .quantidade-control button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .quantidade-control button:hover {
+            background-color: #0056b3;
+        }
+
+        .total-carrinho {
+            text-align: right;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        
+        .checkout-seccao label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        .checkout-seccao input[type="text"], .checkout-seccao select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .checkout-seccao .opcoes-entrega {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .checkout-seccao button[type="submit"] {
+            width: 100%;
+            margin-top: 20px;
+            background-color: #28a745;
+            transition: background-color 0.3s;
+        }
+        
+        .checkout-seccao button[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        #campo-pesquisa {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 0 10px 20px;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div>
+            <h1>Nosso Cardápio</h1>
+            
+            <input type="text" id="campo-pesquisa" placeholder="Pesquisar produtos...">
+
+            <div id="filtros">
+            </div>
+            
+            <div id="lista-produtos">
+            </div>
+        </div>
+
+        <div id="carrinho-seccao">
+            <div id="carrinho">
+                <h2>Carrinho de Compras</h2>
+                <div id="itens-carrinho">
+                </div>
+                <div id="total-carrinho" class="total-carrinho">
+                </div>
+            </div>
+
+            <div class="checkout-seccao">
+                <h3>Finalizar Pedido</h3>
+                <form id="formulario-checkout">
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" name="nome" required>
+
+                    <label for="endereco">Endereço:</label>
+                    <input type="text" id="endereco" name="endereco">
+                    
+                    <label for="whatsapp">WhatsApp:</label>
+                    <input type="text" id="whatsapp" name="whatsapp" required>
+
+                    <div class="opcoes-entrega">
+                        <label>
+                            <input type="radio" name="tipo_entrega" value="delivery" checked>
+                            Entrega
+                        </label>
+                        <label>
+                            <input type="radio" name="tipo_entrega" value="pickup">
+                            Retirada
+                        </label>
+                    </div>
+                    
+                    <label for="forma_pagamento">Forma de Pagamento:</label>
+                    <select id="forma_pagamento" name="forma_pagamento">
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartao">Cartão de Crédito/Débito</option>
+                        <option value="pix">PIX</option>
+                    </select>
+
+                    <button type="submit">Fazer Pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getProdutos() {
+            const produtos = localStorage.getItem('catalogo');
+            return produtos ? JSON.parse(produtos) : [];
+        }
+
+        function getCategorias() {
+            const categorias = localStorage.getItem('categorias');
+            return categorias ? JSON.parse(categorias) : [];
+        }
+        
+        const catalogo = getProdutos();
+        const custoEntrega = 10.00;
+
+        function carregarCarrinho() {
+            const carrinhoSalvo = localStorage.getItem('carrinho');
+            return carrinhoSalvo ? JSON.parse(carrinhoSalvo) : [];
+        }
+
+        function salvarCarrinho() {
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+        }
+
+        function atualizarCarrinho() {
+            const itensCarrinhoElement = document.getElementById('itens-carrinho');
+            const totalCarrinhoElement = document.getElementById('total-carrinho');
+            const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked').value;
+            
+            itensCarrinhoElement.innerHTML = '';
+            let subtotal = 0;
+
+            if (carrinho.length === 0) {
+                itensCarrinhoElement.innerHTML = '<p style="text-align: center;">O seu carrinho está vazio.</p>';
+            } else {
+                carrinho.forEach((item, index) => {
+                    const itemCarrinhoElement = document.createElement('div');
+                    itemCarrinhoElement.className = 'item-carrinho';
+                    itemCarrinhoElement.innerHTML = `
+                        <span>${item.nome} (${item.quantidade})</span>
+                        <div class="quantidade-control">
+                            <button onclick="diminuirQuantidade(${index})">-</button>
+                            <span>R$${(item.preco * item.quantidade).toFixed(2)}</span>
+                            <button onclick="aumentarQuantidade(${index})">+</button>
+                        </div>
+                    `;
+                    itensCarrinhoElement.appendChild(itemCarrinhoElement);
+                    subtotal += item.preco * item.quantidade;
+                });
+            }
+
+            let total = subtotal;
+            let totalTexto = `Subtotal: R$${subtotal.toFixed(2)}`;
+
+            if (tipoEntrega === 'delivery') {
+                total += custoEntrega;
+                totalTexto += `<br>Entrega: R$${custoEntrega.toFixed(2)}`;
+                totalTexto += `<br>Total: R$${total.toFixed(2)}`;
+            } else {
+                totalTexto += `<br>Total: R$${total.toFixed(2)} (Retirada)`;
+            }
+
+            totalCarrinhoElement.innerHTML = totalTexto;
+            salvarCarrinho();
+        }
+        
+        function aumentarQuantidade(index) {
+            carrinho[index].quantidade++;
+            atualizarCarrinho();
+        }
+
+        function diminuirQuantidade(index) {
+            if (carrinho[index].quantidade > 1) {
+                carrinho[index].quantidade--;
+            } else {
+                carrinho.splice(index, 1);
+            }
+            atualizarCarrinho();
+        }
+
+        function adicionarAoCarrinho(produtoId) {
+            const produtoSelecionado = catalogo.find(p => p.id === produtoId);
+            if (!produtoSelecionado || !produtoSelecionado.ativo) {
+                alert('Este produto não está disponível no momento.');
+                return;
+            }
+
+            const itemNoCarrinho = carrinho.find(item => item.id === produtoId);
+
+            if (itemNoCarrinho) {
+                itemNoCarrinho.quantidade++;
+            } else {
+                carrinho.push({ ...produtoSelecionado, quantidade: 1 });
+            }
+            atualizarCarrinho();
+        }
+
+        function renderizarCategorias() {
+            const categorias = getCategorias();
+            const filtrosElement = document.getElementById('filtros');
+            filtrosElement.innerHTML = '';
+            
+            const botaoTodos = document.createElement('button');
+            botaoTodos.textContent = 'Todos';
+            botaoTodos.className = 'ativo';
+            botaoTodos.onclick = () => filtrarProdutos('todos');
+            filtrosElement.appendChild(botaoTodos);
+
+            categorias.forEach(categoria => {
+                const button = document.createElement('button');
+                button.textContent = categoria;
+                button.onclick = () => filtrarProdutos(categoria);
+                filtrosElement.appendChild(button);
+            });
+        }
+
+        function filtrarProdutos(categoria, termoPesquisa = '') {
+            const termo = termoPesquisa.toLowerCase();
+
+            const botoesFiltro = document.querySelectorAll('#filtros button');
+            botoesFiltro.forEach(btn => btn.classList.remove('ativo'));
+            if (categoria !== 'todos') {
+                const botaoAtivo = document.querySelector(`#filtros button[onclick="filtrarProdutos('${categoria}')"]`);
+                if (botaoAtivo) {
+                    botaoAtivo.classList.add('ativo');
+                }
+            } else {
+                document.querySelector(`#filtros button`).classList.add('ativo');
+            }
+
+            let produtosFiltrados = catalogo.filter(p => p.ativo);
+            
+            if (categoria !== 'todos') {
+                produtosFiltrados = produtosFiltrados.filter(p => p.categoria === categoria);
+            }
+
+            if (termo) {
+                produtosFiltrados = produtosFiltrados.filter(p => 
+                    p.nome.toLowerCase().includes(termo) || 
+                    p.descricao.toLowerCase().includes(termo)
+                );
+            }
+            
+            renderizarProdutos(produtosFiltrados);
+        }
+
+        function renderizarProdutos(produtos) {
+            const listaProdutosElement = document.getElementById('lista-produtos');
+            listaProdutosElement.innerHTML = '';
+
+            if (produtos.length === 0) {
+                listaProdutosElement.innerHTML = '<p>Nenhum produto encontrado.</p>';
+                return;
+            }
+
+            produtos.forEach(produto => {
+                const produtoElement = document.createElement('div');
+                produtoElement.className = 'produto';
+                
+                let imagemHTML = produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : '';
+
+                produtoElement.innerHTML = `
+                    ${imagemHTML}
+                    <h2>${produto.nome}</h2>
+                    <p>${produto.descricao}</p>
+                    <p class="preco">R$${produto.preco.toFixed(2)}</p>
+                    <button onclick="adicionarAoCarrinho(${produto.id})">Adicionar</button>
+                `;
+                
+                listaProdutosElement.appendChild(produtoElement);
+            });
+        }
+        
+        const opcoesEntrega = document.querySelectorAll('input[name="tipo_entrega"]');
+        opcoesEntrega.forEach(radio => {
+            radio.addEventListener('change', atualizarCarrinho);
+        });
+
+        document.getElementById('formulario-checkout').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (carrinho.length === 0) {
+                alert('O carrinho está vazio! Adicione produtos para fazer o pedido.');
+                return;
+            }
+
+            const nome = document.getElementById('nome').value;
+            const endereco = document.getElementById('endereco').value;
+            const whatsapp = document.getElementById('whatsapp').value;
+            const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked').value;
+            const formaPagamento = document.getElementById('forma_pagamento').value;
+            const total = document.getElementById('total-carrinho').textContent.split('Total: ')[1];
+            
+            const pedido = {
+                cliente: nome,
+                endereco: tipoEntrega === 'delivery' ? endereco : 'Retirada no Local',
+                whatsapp: whatsapp,
+                tipoEntrega: tipoEntrega,
+                formaPagamento: formaPagamento,
+                itens: carrinho,
+                total: total,
+                data: new Date().toISOString()
+            };
+
+            const pedidosAnteriores = JSON.parse(localStorage.getItem('pedidos') || '[]');
+            pedidosAnteriores.push(pedido);
+            localStorage.setItem('pedidos', JSON.stringify(pedidosAnteriores));
+
+            localStorage.setItem('pedidoConfirmacao', JSON.stringify(pedido));
+            localStorage.removeItem('carrinho');
+            window.location.href = 'confirmacao.html';
+        });
+
+        document.getElementById('campo-pesquisa').addEventListener('keyup', (event) => {
+            const termoPesquisa = event.target.value;
+            const categoriaAtiva = document.querySelector('#filtros button.ativo').textContent;
+            filtrarProdutos(categoriaAtiva === 'Todos' ? 'todos' : categoriaAtiva, termoPesquisa);
+        });
+        
+        let carrinho = carregarCarrinho();
+        renderizarCategorias();
+        filtrarProdutos('todos');
+        atualizarCarrinho();
+    </script>
+</body>
+</html>
